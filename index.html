@@ -516,6 +516,20 @@
               <option value="off">Ręcznie przyciskiem Dalej</option>
             </select>
           </label>
+          <label class="field">
+            Czas auto-przejścia
+            <select id="autoDelaySelect">
+              <option value="1000">1 sek.</option>
+              <option value="1500">1.5 sek.</option>
+              <option value="2000">2 sek.</option>
+              <option value="2500">2.5 sek.</option>
+              <option value="3000">3 sek.</option>
+              <option value="3500">3.5 sek.</option>
+              <option value="4000">4 sek.</option>
+              <option value="4500">4.5 sek.</option>
+              <option value="5000">5 sek.</option>
+            </select>
+          </label>
         </div>
       </details>
 
@@ -581,6 +595,20 @@
               <option value="off">Ręcznie przyciskiem Dalej</option>
             </select>
           </label>
+          <label class="field">
+            Czas auto-przejścia
+            <select id="liveAutoDelaySelect">
+              <option value="1000">1 sek.</option>
+              <option value="1500">1.5 sek.</option>
+              <option value="2000">2 sek.</option>
+              <option value="2500">2.5 sek.</option>
+              <option value="3000">3 sek.</option>
+              <option value="3500">3.5 sek.</option>
+              <option value="4000">4 sek.</option>
+              <option value="4500">4.5 sek.</option>
+              <option value="5000">5 sek.</option>
+            </select>
+          </label>
         </div>
       </details>
 
@@ -628,9 +656,11 @@
       directionSelect: $("directionSelect"),
       modeSelect: $("modeSelect"),
       autoNextSelect: $("autoNextSelect"),
+      autoDelaySelect: $("autoDelaySelect"),
       liveDirectionSelect: $("liveDirectionSelect"),
       liveModeSelect: $("liveModeSelect"),
       liveAutoNextSelect: $("liveAutoNextSelect"),
+      liveAutoDelaySelect: $("liveAutoDelaySelect"),
       startBtn: $("startBtn"),
       previewBtn: $("previewBtn"),
       previewText: $("previewText"),
@@ -670,7 +700,8 @@
         lastFileId: null,
         direction: "foreignToPolish",
         mode: "choice",
-        autoNext: true
+        autoNext: true,
+        autoDelayMs: 2000
       };
     }
 
@@ -720,6 +751,8 @@
       els.liveModeSelect.value = state.mode;
       els.autoNextSelect.value = state.autoNext ? "on" : "off";
       els.liveAutoNextSelect.value = state.autoNext ? "on" : "off";
+      els.autoDelaySelect.value = String(state.autoDelayMs || 2000);
+      els.liveAutoDelaySelect.value = String(state.autoDelayMs || 2000);
     }
 
     function parseWords(text) {
@@ -918,6 +951,15 @@
       toast(state.autoNext ? "Automatyczne przechodzenie włączone." : "Automatyczne przechodzenie wyłączone.");
     }
 
+    function setAutoDelay(value) {
+      const delay = Number(value);
+      if (!Number.isFinite(delay)) return;
+      state.autoDelayMs = delay;
+      saveState();
+      syncControls();
+      toast(`Czas auto-przejścia: ${delay / 1000}s`);
+    }
+
     function startQuiz(words, phase = "main") {
       if (!words || !words.length) return;
 
@@ -1001,7 +1043,7 @@
 
       if (!ok) button.classList.add("wrong");
       finishAnswer(ok, item, correct);
-      afterAnswer(1300);
+      afterAnswer();
     }
 
     function checkTyping() {
@@ -1022,11 +1064,12 @@
       els.typingInput.disabled = true;
       els.checkTypingBtn.disabled = true;
       finishAnswer(ok, item, pair.answer);
-      afterAnswer(ok ? 1300 : 3500);
+      afterAnswer();
     }
 
-    function afterAnswer(delay = 1300) {
+    function afterAnswer() {
       updateWrongDownloadButton();
+      const delay = state.autoDelayMs || 2000;
       if (state.autoNext) setTimeout(nextQuestion, delay);
       else els.nextBtn.classList.remove("hidden");
     }
@@ -1167,9 +1210,11 @@
     els.directionSelect.addEventListener("change", () => setDirection(els.directionSelect.value, false));
     els.modeSelect.addEventListener("change", () => setMode(els.modeSelect.value, false));
     els.autoNextSelect.addEventListener("change", () => setAutoNext(els.autoNextSelect.value));
+    els.autoDelaySelect.addEventListener("change", () => setAutoDelay(els.autoDelaySelect.value));
     els.liveDirectionSelect.addEventListener("change", () => setDirection(els.liveDirectionSelect.value, true));
     els.liveModeSelect.addEventListener("change", () => setMode(els.liveModeSelect.value, true));
     els.liveAutoNextSelect.addEventListener("change", () => setAutoNext(els.liveAutoNextSelect.value));
+    els.liveAutoDelaySelect.addEventListener("change", () => setAutoDelay(els.liveAutoDelaySelect.value));
     els.previewBtn.addEventListener("click", showPreview);
     els.closePreviewBtn.addEventListener("click", () => screen(els.settingsScreen));
     els.backToFilesBtn.addEventListener("click", () => screen(els.filesScreen));
