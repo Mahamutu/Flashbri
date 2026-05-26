@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4efff" />
+  <title>Flashbri</title>
+
+  <style>
+    :root {
+      --bg: #f4efff;
+      --panel: #ffffff;
+      --panel2: #faf7ff;
+      --text: #211331;
+      --muted: #756586;
+      --line: #e7d9fb;
+      --main: #7c3aed;
+      --main2: #6d28d9;
+      --good: #1d9a57;
+      --bad: #d64545;
+      --good-soft: rgba(29, 154, 87, 0.13);
+      --bad-soft: rgba(214, 69, 69, 0.13);
+      --toast-bg: #ffffff;
+      --toast-text: #211331;
+      --shadow: 0 16px 40px rgba(91, 33, 182, 0.14);
+      --radius: 22px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0b10;
+      --panel: #15151d;
+      --panel2: #1d1d27;
+      --text: #f6f2ff;
+      --muted: #aaa2b8;
+      --line: #2a2935;
+      --main: #7c3aed;
+      --main2: #6d28d9;
+      --good: #2fbf75;
+      --bad: #ef5b5b;
+      --good-soft: rgba(47, 191, 117, 0.16);
+      --bad-soft: rgba(239, 91, 91, 0.16);
+      --toast-bg: #15151d;
+      --toast-text: #f6f2ff;
+      --shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    .app {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+      padding-bottom: 42px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -0.06em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .theme-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      font-size: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .hidden { display: none !important; }
+
+    .title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 620px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    .primary, .secondary, .small {
+      min-height: 46px;
+      border-radius: 16px;
+      padding: 0 16px;
+      font-weight: 800;
+    }
+
+    .primary {
+      background: var(--main);
+      color: white;
+    }
+
+    .secondary, .small {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .small {
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 13px;
+      font-size: 13px;
+    }
+
+    input[type="file"] { display: none; }
+
+    label.field {
+      display: grid;
+      gap: 7px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    select, input[type="text"], textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 13px 14px;
+      outline: none;
+    }
+
+    input[type="text"].correct-input {
+      background: var(--good);
+      border-color: var(--good);
+      color: white;
+      font-weight: 850;
+    }
+
+    input[type="text"].wrong-input {
+      background: var(--bad);
+      border-color: var(--bad);
+      color: white;
+      font-weight: 850;
+    }
+
+    input[type="text"].correct-input::placeholder,
+    input[type="text"].wrong-input::placeholder {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    textarea { resize: vertical; min-height: 130px; }
+
+    .file-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .file-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+    }
+
+    .file-item.pinned { outline: 2px solid color-mix(in srgb, var(--main), transparent 60%); }
+    .file-name { font-weight: 900; word-break: break-word; }
+    .file-meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .file-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .progress {
+      height: 10px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--main);
+      transition: width 0.25s ease;
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .question {
+      margin: 18px 0;
+      padding: 24px 16px;
+      text-align: center;
+      border-radius: 22px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      font-size: clamp(28px, 8vw, 46px);
+      font-weight: 950;
+      letter-spacing: -0.05em;
+      word-break: break-word;
+    }
+
+    .answers {
+      display: grid;
+      gap: 10px;
+    }
+
+    .answer {
+      min-height: 58px;
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-align: left;
+      font-weight: 850;
+    }
+
+    .answer.correct { background: var(--good); color: white; border-color: var(--good); }
+    .answer.wrong { background: var(--bad); color: white; border-color: var(--bad); }
+    .answer:disabled { cursor: default; opacity: 0.92; }
+
+    .feedback {
+      min-height: 30px;
+      margin-top: 12px;
+      font-weight: 900;
+      padding: 0;
+    }
+
+    .feedback.good { color: var(--good); }
+    .feedback.bad { color: var(--bad); }
+
+    details.options-box {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel2);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    details.options-box summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 900;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    details.options-box summary::-webkit-details-marker { display: none; }
+
+    .chevron {
+      color: var(--muted);
+      transition: transform 0.18s ease;
+    }
+
+    details[open] .chevron { transform: rotate(180deg); }
+
+    .options-content {
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (min-width: 620px) {
+      .options-content { grid-template-columns: 1fr 1fr; }
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .stat {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .stat strong { display: block; font-size: 24px; }
+    .stat span { color: var(--muted); font-size: 12px; font-weight: 800; }
+
+    .empty {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px dashed var(--line);
+      background: var(--panel2);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      width: min(520px, calc(100% - 28px));
+      padding: 13px 16px;
+      border-radius: 16px;
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      font-weight: 800;
+      text-align: center;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Flashbri</h1>
+        <div class="subtitle">Nauka słówek z własnych plików</div>
+      </div>
+      <button class="theme-btn" id="themeBtn" aria-label="Zmień motyw">◐</button>
+    </header>
+
+    <section class="card" id="filesScreen">
+      <h2 class="title">Twoje zestawy</h2>
+      <p class="muted">Dodaj plik TXT w formacie <b>słówko obce - słówko po polsku</b>. Obsługiwane są też średnik i tabulator.</p>
+      <div class="row" style="margin-top:14px;">
+        <label class="primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+          + Dodaj plik
+          <input id="fileInput" type="file" accept=".txt,.csv,text/plain" />
+        </label>
+        <button class="secondary" id="sampleBtn">Wczytaj przykład</button>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </section>
+
+    <section class="card hidden" id="settingsScreen">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <h2 class="title" id="activeFileTitle">Ustawienia</h2>
+          <div class="muted" id="activeFileMeta"></div>
+        </div>
+        <button class="small" id="backToFilesBtn">Pliki</button>
+      </div>
+
+      <details class="options-box" open style="margin-top:14px;">
+        <summary>
+          Opcje startowe
+          <span class="chevron">⌄</span>
+        </summary>
+        <div class="options-content">
+          <label class="field">
+            Kolejność pytań
+            <select id="directionSelect">
+              <option value="foreignToPolish">Obcy → polski</option>
+              <option value="polishToForeign">Polski → obcy</option>
+            </select>
+          </label>
+          <label class="field">
+            Tryb rozwiązywania
+            <select id="modeSelect">
+              <option value="choice">Test wyboru</option>
+              <option value="typing">Wpisywanie</option>
+            </select>
+          </label>
+          <label class="field">
+            Przechodzenie dalej
+            <select id="autoNextSelect">
+              <option value="on">Automatycznie</option>
+              <option value="off">Ręcznie przyciskiem Dalej</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <div class="row" style="margin-top:16px;">
+        <button class="primary" id="startBtn">Start nauki</button>
+        <button class="secondary" id="previewBtn">Podgląd słówek</button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="previewScreen">
+      <div class="row" style="justify-content:space-between;">
+        <h2 class="title">Podgląd słówek</h2>
+        <button class="small" id="closePreviewBtn">Zamknij</button>
+      </div>
+      <textarea id="previewText" readonly></textarea>
+    </section>
+
+    <section class="card hidden" id="quizScreen">
+      <div class="quiz-top">
+        <span id="quizCount">Pytanie 1/1</span>
+        <span id="quizPhase">Główna runda</span>
+      </div>
+      <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="question" id="questionText">...</div>
+      <div class="answers" id="choiceArea"></div>
+
+      <div class="grid hidden" id="typingArea">
+        <input id="typingInput" type="text" autocomplete="off" placeholder="Wpisz odpowiedź..." />
+        <button class="primary" id="checkTypingBtn">Sprawdź</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <details class="options-box" id="liveOptionsBox">
+        <summary>
+          Opcje nauki
+          <span class="chevron">⌄</span>
+        </summary>
+        <div class="options-content">
+          <label class="field">
+            Kolejność teraz
+            <select id="liveDirectionSelect">
+              <option value="foreignToPolish">Obcy → polski</option>
+              <option value="polishToForeign">Polski → obcy</option>
+            </select>
+          </label>
+          <label class="field">
+            Tryb teraz
+            <select id="liveModeSelect">
+              <option value="choice">Test wyboru</option>
+              <option value="typing">Wpisywanie</option>
+            </select>
+          </label>
+          <label class="field">
+            Przechodzenie dalej
+            <select id="liveAutoNextSelect">
+              <option value="on">Automatycznie</option>
+              <option value="off">Ręcznie przyciskiem Dalej</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <div class="row" style="margin-top:14px;justify-content:space-between;">
+        <button class="secondary" id="stopQuizBtn">Zakończ</button>
+        <button class="primary hidden" id="nextBtn">Dalej</button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="resultScreen">
+      <h2 class="title">Wynik</h2>
+      <p class="muted" id="resultText"></p>
+      <div class="stats">
+        <div class="stat"><strong id="statAll">0</strong><span>wszystkie</span></div>
+        <div class="stat"><strong id="statGood">0</strong><span>dobrze</span></div>
+        <div class="stat"><strong id="statBad">0</strong><span>błędne</span></div>
+      </div>
+      <div class="row">
+        <button class="primary hidden" id="repeatWrongBtn">Powtórz błędne</button>
+        <button class="secondary hidden" id="exportWrongBtn">Eksportuj błędne</button>
+        <button class="secondary" id="againBtn">Od początku</button>
+        <button class="secondary" id="resultFilesBtn">Pliki</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script>
+    const STORAGE_KEY = "flashbri_collapsible_state_v1";
+    const $ = id => document.getElementById(id);
+
+    const els = {
+      themeBtn: $("themeBtn"), fileInput: $("fileInput"), sampleBtn: $("sampleBtn"), fileList: $("fileList"),
+      filesScreen: $("filesScreen"), settingsScreen: $("settingsScreen"), previewScreen: $("previewScreen"), quizScreen: $("quizScreen"), resultScreen: $("resultScreen"),
+      activeFileTitle: $("activeFileTitle"), activeFileMeta: $("activeFileMeta"),
+      directionSelect: $("directionSelect"), modeSelect: $("modeSelect"), autoNextSelect: $("autoNextSelect"),
+      liveDirectionSelect: $("liveDirectionSelect"), liveModeSelect: $("liveModeSelect"), liveAutoNextSelect: $("liveAutoNextSelect"),
+      startBtn: $("startBtn"), previewBtn: $("previewBtn"), previewText: $("previewText"), closePreviewBtn: $("closePreviewBtn"), backToFilesBtn: $("backToFilesBtn"),
+      quizCount: $("quizCount"), quizPhase: $("quizPhase"), progressFill: $("progressFill"), questionText: $("questionText"), choiceArea: $("choiceArea"), typingArea: $("typingArea"), typingInput: $("typingInput"), checkTypingBtn: $("checkTypingBtn"), feedback: $("feedback"), stopQuizBtn: $("stopQuizBtn"), nextBtn: $("nextBtn"),
+      resultText: $("resultText"), statAll: $("statAll"), statGood: $("statGood"), statBad: $("statBad"), repeatWrongBtn: $("repeatWrongBtn"), exportWrongBtn: $("exportWrongBtn"), againBtn: $("againBtn"), resultFilesBtn: $("resultFilesBtn"),
+      toast: $("toast")
+    };
+
+    let state = loadState();
+    let activeSet = null;
+    let quiz = null;
+
+    function defaultState() {
+      return { theme: "light", files: [], lastFileId: null, direction: "foreignToPolish", mode: "choice", autoNext: true };
+    }
+
+    function loadState() {
+      try { return { ...defaultState(), ...(JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}) }; }
+      catch { return defaultState(); }
+    }
+
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    function norm(value) { return String(value).trim().toLowerCase().replace(/\s+/g, " "); }
+
+    function toast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.remove("hidden");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => els.toast.classList.add("hidden"), 2200);
+    }
+
+    function applyTheme() {
+      document.body.dataset.theme = state.theme;
+      els.themeBtn.textContent = state.theme === "dark" ? "☀" : "◐";
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", state.theme === "dark" ? "#0b0b10" : "#f4efff");
+    }
+
+    function screen(name) {
+      [els.filesScreen, els.settingsScreen, els.previewScreen, els.quizScreen, els.resultScreen].forEach(s => s.classList.add("hidden"));
+      name.classList.remove("hidden");
+    }
+
+    function syncControls() {
+      els.directionSelect.value = state.direction;
+      els.liveDirectionSelect.value = state.direction;
+      els.modeSelect.value = state.mode;
+      els.liveModeSelect.value = state.mode;
+      els.autoNextSelect.value = state.autoNext ? "on" : "off";
+      els.liveAutoNextSelect.value = state.autoNext ? "on" : "off";
+    }
+
+    function parseWords(text) {
+      const rows = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const words = [];
+      for (const row of rows) {
+        if (row.startsWith("#")) continue;
+        let parts = null;
+        if (row.includes(" - ")) parts = row.split(" - ");
+        else if (row.includes(";")) parts = row.split(";");
+        else if (row.includes("\t")) parts = row.split("\t");
+        else if (row.includes("-")) parts = row.split("-");
+        if (!parts || parts.length < 2) continue;
+        const foreign = parts[0].trim();
+        const polish = parts.slice(1).join("-").trim();
+        if (foreign && polish) words.push({ foreign, polish });
+      }
+      const seen = new Set();
+      return words.filter(w => {
+        const key = `${norm(w.foreign)}|${norm(w.polish)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+
+    function formatDate(ms) {
+      try { return new Intl.DateTimeFormat("pl-PL", { dateStyle: "short", timeStyle: "short" }).format(ms); }
+      catch { return "teraz"; }
+    }
+
+    function renderFiles() {
+      const files = [...state.files].sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return b.openedAt - a.openedAt;
+      });
+
+      if (!files.length) {
+        els.fileList.innerHTML = '<div class="empty">Nie masz jeszcze żadnych zestawów. Dodaj plik TXT albo wczytaj przykład.</div>';
+        return;
+      }
+
+      els.fileList.innerHTML = "";
+      for (const file of files) {
+        const div = document.createElement("div");
+        div.className = `file-item${file.pinned ? " pinned" : ""}`;
+        div.innerHTML = `
+          <div>
+            <div class="file-name">${file.pinned ? "📌 " : ""}${escapeHtml(file.name)}</div>
+            <div class="file-meta">${file.words.length} słówek · ostatnio: ${formatDate(file.openedAt)}</div>
+          </div>
+          <div class="file-actions">
+            <button class="small" data-action="open" data-id="${file.id}">Otwórz</button>
+            <button class="small" data-action="pin" data-id="${file.id}">${file.pinned ? "Odepnij" : "Przypnij"}</button>
+            <button class="small" data-action="delete" data-id="${file.id}">Usuń</button>
+          </div>`;
+        els.fileList.appendChild(div);
+      }
+    }
+
+    function openSet(id) {
+      const file = state.files.find(f => f.id === id);
+      if (!file) return;
+      activeSet = file;
+      file.openedAt = Date.now();
+      state.lastFileId = id;
+      saveState();
+      renderFiles();
+      els.activeFileTitle.textContent = file.name;
+      els.activeFileMeta.textContent = `${file.words.length} słówek`;
+      syncControls();
+      screen(els.settingsScreen);
+    }
+
+    async function addFile(file) {
+      const text = await file.text();
+      const words = parseWords(text);
+      if (!words.length) return toast("Nie znaleziono poprawnych par słówek.");
+      const item = { id: uid(), name: file.name.replace(/\.[^.]+$/, "") || "Zestaw słówek", words, rawText: text, pinned: false, openedAt: Date.now() };
+      state.files.unshift(item);
+      state.lastFileId = item.id;
+      saveState();
+      openSet(item.id);
+      toast("Dodano zestaw słówek.");
+    }
+
+    function sample() {
+      const text = ["house - dom", "cat - kot", "red - czerwony", "water - woda", "book - książka", "city - miasto", "small - mały", "to learn - uczyć się", "fast - szybki", "window - okno"].join("\n");
+      const item = { id: uid(), name: "Przykładowy zestaw", words: parseWords(text), rawText: text, pinned: false, openedAt: Date.now() };
+      state.files.unshift(item);
+      state.lastFileId = item.id;
+      saveState();
+      openSet(item.id);
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pairFor(item) {
+      return state.direction === "foreignToPolish"
+        ? { question: item.foreign, answer: item.polish, answerKey: "polish" }
+        : { question: item.polish, answer: item.foreign, answerKey: "foreign" };
+    }
+
+    function setDirection(value, live) {
+      state.direction = value;
+      saveState();
+      syncControls();
+      if (!live || !quiz) return;
+      if (quiz.answered) return toast("Kolejność zmieni się od następnego pytania.");
+      renderQuestion();
+      toast(value === "foreignToPolish" ? "Teraz: obcy → polski" : "Teraz: polski → obcy");
+    }
+
+    function setMode(value, live) {
+      state.mode = value;
+      saveState();
+      syncControls();
+      if (!live || !quiz) return;
+      if (quiz.answered) return toast("Tryb zmieni się od następnego pytania.");
+      renderQuestion();
+      toast(value === "choice" ? "Teraz: test wyboru" : "Teraz: wpisywanie");
+    }
+
+    function setAutoNext(value) {
+      state.autoNext = value === "on";
+      saveState();
+      syncControls();
+      toast(state.autoNext ? "Automatyczne przechodzenie włączone." : "Automatyczne przechodzenie wyłączone.");
+    }
+
+    function startQuiz(words, phase = "main") {
+      if (!words || !words.length) return;
+      syncControls();
+      quiz = { phase, all: shuffle(words), index: 0, correct: 0, wrong: 0, wrongItems: [], answered: false };
+      screen(els.quizScreen);
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const item = quiz.all[quiz.index];
+      const pair = pairFor(item);
+      quiz.answered = false;
+      els.feedback.textContent = "";
+      els.feedback.className = "feedback";
+      els.nextBtn.classList.add("hidden");
+      els.quizPhase.textContent = quiz.phase === "wrong" ? "Powtórka błędów" : "Główna runda";
+      els.quizCount.textContent = `Pytanie ${quiz.index + 1}/${quiz.all.length}`;
+      els.progressFill.style.width = `${(quiz.index / quiz.all.length) * 100}%`;
+      els.questionText.textContent = pair.question;
+      syncControls();
+
+      if (state.mode === "choice") renderChoice(item, pair);
+      else renderTyping();
+    }
+
+    function renderChoice(item, pair) {
+      els.typingArea.classList.add("hidden");
+      els.choiceArea.classList.remove("hidden");
+      const wrongPool = activeSet.words
+        .filter(w => w !== item)
+        .map(w => w[pair.answerKey])
+        .filter(x => norm(x) !== norm(pair.answer));
+      const options = shuffle([pair.answer, ...shuffle(wrongPool).slice(0, 3)]).slice(0, 4);
+      els.choiceArea.innerHTML = "";
+      for (const option of options) {
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.textContent = option;
+        btn.addEventListener("click", () => answerChoice(btn, option, pair.answer, item));
+        els.choiceArea.appendChild(btn);
+      }
+    }
+
+    function renderTyping() {
+      els.choiceArea.innerHTML = "";
+      els.choiceArea.classList.add("hidden");
+      els.typingArea.classList.remove("hidden");
+      els.typingInput.value = "";
+      els.typingInput.classList.remove("correct-input", "wrong-input");
+      els.typingInput.disabled = false;
+      els.checkTypingBtn.disabled = false;
+      setTimeout(() => els.typingInput.focus(), 80);
+    }
+
+    function answerChoice(button, selected, correct, item) {
+      if (quiz.answered) return;
+      quiz.answered = true;
+      const ok = norm(selected) === norm(correct);
+      document.querySelectorAll(".answer").forEach(btn => {
+        btn.disabled = true;
+        if (norm(btn.textContent) === norm(correct)) btn.classList.add("correct");
+      });
+      if (!ok) button.classList.add("wrong");
+      finishAnswer(ok, item, correct);
+      afterAnswer();
+    }
+
+    function checkTyping() {
+      if (!quiz || quiz.answered) return;
+      const item = quiz.all[quiz.index];
+      const pair = pairFor(item);
+      const ok = norm(els.typingInput.value) === norm(pair.answer);
+      quiz.answered = true;
+      els.typingInput.classList.add(ok ? "correct-input" : "wrong-input");
+      els.typingInput.disabled = true;
+      els.checkTypingBtn.disabled = true;
+      finishAnswer(ok, item, pair.answer);
+      afterAnswer();
+    }
+
+    function afterAnswer() {
+      if (state.autoNext) setTimeout(nextQuestion, 850);
+      else els.nextBtn.classList.remove("hidden");
+    }
+
+    function finishAnswer(ok, item, correct) {
+      if (ok) {
+        quiz.correct++;
+        els.feedback.textContent = "Dobrze!";
+        els.feedback.classList.add("good");
+      } else {
+        quiz.wrong++;
+        const key = `${item.foreign}|${item.polish}`;
+        if (!quiz.wrongItems.some(w => `${w.foreign}|${w.polish}` === key)) quiz.wrongItems.push(item);
+        els.feedback.textContent = `Źle. Poprawna odpowiedź: ${correct}`;
+        els.feedback.classList.add("bad");
+      }
+    }
+
+    function nextQuestion() {
+      if (!quiz || !quiz.answered) return;
+      quiz.index++;
+      if (quiz.index >= quiz.all.length) {
+        els.progressFill.style.width = "100%";
+        if (quiz.phase === "main" && quiz.wrongItems.length) {
+          const wrong = [...quiz.wrongItems];
+          toast("Teraz powtórka błędnych odpowiedzi.");
+          setTimeout(() => startQuiz(wrong, "wrong"), 500);
+        } else showResults();
+      } else renderQuestion();
+    }
+
+    function showResults() {
+      screen(els.resultScreen);
+      els.statAll.textContent = quiz.all.length;
+      els.statGood.textContent = quiz.correct;
+      els.statBad.textContent = quiz.wrongItems.length;
+      if (quiz.wrongItems.length) {
+        els.resultText.textContent = `Zostało ${quiz.wrongItems.length} słówek do poprawienia.`;
+        els.repeatWrongBtn.classList.remove("hidden");
+        els.exportWrongBtn.classList.remove("hidden");
+      } else {
+        els.resultText.textContent = "Świetnie! Nie zostały żadne błędne odpowiedzi.";
+        els.repeatWrongBtn.classList.add("hidden");
+        els.exportWrongBtn.classList.add("hidden");
+      }
+    }
+
+    function exportWrong() {
+      if (!quiz || !quiz.wrongItems.length) return;
+      const content = quiz.wrongItems.map(w => `${w.foreign} - ${w.polish}`).join("\n");
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const name = activeSet ? activeSet.name.replace(/\s+/g, "_") : "flashbri";
+      a.href = url;
+      a.download = `${name}_bledne.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("Wyeksportowano błędne słówka.");
+    }
+
+    function showPreview() {
+      if (!activeSet) return;
+      els.previewText.value = activeSet.words.map(w => `${w.foreign} - ${w.polish}`).join("\n");
+      screen(els.previewScreen);
+    }
+
+    els.themeBtn.addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; saveState(); applyTheme(); });
+    els.fileInput.addEventListener("change", e => { const file = e.target.files[0]; if (file) addFile(file); e.target.value = ""; });
+    els.sampleBtn.addEventListener("click", sample);
+    els.fileList.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (action === "open") openSet(id);
+      if (action === "pin") { const f = state.files.find(x => x.id === id); if (f) f.pinned = !f.pinned; saveState(); renderFiles(); }
+      if (action === "delete") { state.files = state.files.filter(x => x.id !== id); if (state.lastFileId === id) state.lastFileId = state.files[0]?.id || null; saveState(); renderFiles(); toast("Usunięto zestaw."); }
+    });
+
+    els.startBtn.addEventListener("click", () => { if (activeSet) startQuiz(activeSet.words, "main"); });
+    els.directionSelect.addEventListener("change", () => setDirection(els.directionSelect.value, false));
+    els.modeSelect.addEventListener("change", () => setMode(els.modeSelect.value, false));
+    els.autoNextSelect.addEventListener("change", () => setAutoNext(els.autoNextSelect.value));
+    els.liveDirectionSelect.addEventListener("change", () => setDirection(els.liveDirectionSelect.value, true));
+    els.liveModeSelect.addEventListener("change", () => setMode(els.liveModeSelect.value, true));
+    els.liveAutoNextSelect.addEventListener("change", () => setAutoNext(els.liveAutoNextSelect.value));
+    els.previewBtn.addEventListener("click", showPreview);
+    els.closePreviewBtn.addEventListener("click", () => screen(els.settingsScreen));
+    els.backToFilesBtn.addEventListener("click", () => screen(els.filesScreen));
+    els.stopQuizBtn.addEventListener("click", () => screen(els.settingsScreen));
+    els.nextBtn.addEventListener("click", nextQuestion);
+    els.checkTypingBtn.addEventListener("click", checkTyping);
+    els.typingInput.addEventListener("keydown", e => { if (e.key === "Enter") checkTyping(); });
+    els.repeatWrongBtn.addEventListener("click", () => startQuiz(quiz.wrongItems, "wrong"));
+    els.exportWrongBtn.addEventListener("click", exportWrong);
+    els.againBtn.addEventListener("click", () => activeSet && startQuiz(activeSet.words, "main"));
+    els.resultFilesBtn.addEventListener("click", () => screen(els.filesScreen));
+
+    applyTheme();
+    renderFiles();
+    syncControls();
+    const last = state.files.find(f => f.id === state.lastFileId);
+    if (last) openSet(last.id);
+  </script>
+</body>
+</html>
