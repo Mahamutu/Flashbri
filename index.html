@@ -756,16 +756,23 @@
     }
 
     function parseWords(text) {
-      const rows = text.split(/\r?\n/).map(row => row.trim()).filter(Boolean);
+      const rows = text.split(/
+?
+/).map(row => row.trim()).filter(Boolean);
       const words = [];
 
       for (const row of rows) {
         if (row.startsWith("#")) continue;
 
         let parts = null;
+
         if (row.includes(" - ")) parts = row.split(" - ");
+        else if (row.includes(" – ")) parts = row.split(" – ");
+        else if (row.includes(" — ")) parts = row.split(" — ");
         else if (row.includes(";")) parts = row.split(";");
-        else if (row.includes("\t")) parts = row.split("\t");
+        else if (row.includes("	")) parts = row.split("	");
+        else if (row.includes("–")) parts = row.split("–");
+        else if (row.includes("—")) parts = row.split("—");
         else if (row.includes("-")) parts = row.split("-");
 
         if (!parts || parts.length < 2) continue;
