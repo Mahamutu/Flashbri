@@ -759,9 +759,9 @@
       let cleanedText = String(text || "");
       if (cleanedText.charCodeAt(0) === 0xFEFF) cleanedText = cleanedText.slice(1);
 
-      const rows = cleanedText.split(new RegExp("\\r?\\n")).map(row => row.trim()).filter(Boolean);
+      const rows = cleanedText.split(new RegExp("\r?\n")).map(row => row.trim()).filter(Boolean);
       const words = [];
-      const separator = new RegExp("\\s+(?:-|–|—)\\s+|\\s*;\\s*|\\t+");
+      const separator = new RegExp("\s+(?:-|–|—)\s+|\s*;\s*|\t+");
 
       for (const row of rows) {
         if (row.startsWith("#")) continue;
@@ -780,7 +780,11 @@
         const key = norm(word.foreign) + "|" + norm(word.polish);
         if (seen.has(key)) return false;
         seen.add(key);
-        return
+        return true;
+      });
+    }
+
+    function escapeHtml(value) {
       return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -843,10 +847,18 @@
     }
 
     async function addFile(file) {
-      const text = await file.text();
+      let text = "";
+
+      try {
+        text = await file.text();
+      } catch {
+        toast("Nie udało się odczytać pliku.");
+        return;
+      }
+
       const words = parseWords(text);
       if (!words.length) {
-        toast("Nie znaleziono poprawnych par słówek.");
+        toast("Nie znaleziono par. Użyj formatu: słowo - tłumaczenie.");
         return;
       }
 
