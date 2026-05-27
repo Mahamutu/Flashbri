@@ -473,7 +473,7 @@
       <div class="row" style="margin-top:14px;">
         <label class="primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;">
           + Dodaj plik
-          <input id="fileInput" type="file" accept=".txt,.csv,text/plain" />
+          <input id="fileInput" type="file" />
         </label>
         <button class="secondary" id="sampleBtn">Wczytaj przykład</button>
       </div>
@@ -756,42 +756,31 @@
     }
 
     function parseWords(text) {
-      const rows = text.split(/
-?
-/).map(row => row.trim()).filter(Boolean);
+      let cleanedText = String(text || "");
+      if (cleanedText.charCodeAt(0) === 0xFEFF) cleanedText = cleanedText.slice(1);
+
+      const rows = cleanedText.split(new RegExp("\\r?\\n")).map(row => row.trim()).filter(Boolean);
       const words = [];
+      const separator = new RegExp("\\s+(?:-|–|—)\\s+|\\s*;\\s*|\\t+");
 
       for (const row of rows) {
         if (row.startsWith("#")) continue;
 
-        let parts = null;
-
-        if (row.includes(" - ")) parts = row.split(" - ");
-        else if (row.includes(" – ")) parts = row.split(" – ");
-        else if (row.includes(" — ")) parts = row.split(" — ");
-        else if (row.includes(";")) parts = row.split(";");
-        else if (row.includes("	")) parts = row.split("	");
-        else if (row.includes("–")) parts = row.split("–");
-        else if (row.includes("—")) parts = row.split("—");
-        else if (row.includes("-")) parts = row.split("-");
-
+        const parts = row.split(separator);
         if (!parts || parts.length < 2) continue;
 
         const foreign = parts[0].trim();
-        const polish = parts.slice(1).join("-").trim();
+        const polish = parts.slice(1).join(" - ").trim();
+
         if (foreign && polish) words.push({ foreign, polish });
       }
 
       const seen = new Set();
       return words.filter(word => {
-        const key = `${norm(word.foreign)}|${norm(word.polish)}`;
+        const key = norm(word.foreign) + "|" + norm(word.polish);
         if (seen.has(key)) return false;
         seen.add(key);
-        return true;
-      });
-    }
-
-    function escapeHtml(value) {
+        return
       return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
